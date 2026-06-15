@@ -31,7 +31,9 @@ body {
   max-width: 70%;
   padding: 10px 14px;
   border-radius: 12px;
-  word-break: break-word;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .message-item.left .message-bubble {

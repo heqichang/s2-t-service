@@ -198,6 +198,19 @@ const CustomerTicketDetail: React.FC = () => {
           <Text>{ticket.description}</Text>
         </div>
 
+        {ticket.attachments && ticket.attachments.length > 0 && (
+          <>
+            <Divider orientation="left">附件</Divider>
+            <Space direction="vertical">
+              {ticket.attachments.map((att) => (
+                <a key={att.id} href={att.url} target="_blank" rel="noopener noreferrer">
+                  📎 {att.filename} ({(att.size / 1024).toFixed(1)} KB)
+                </a>
+              ))}
+            </Space>
+          </>
+        )}
+
         {ticket.mergedTo && (
           <>
             <Divider />

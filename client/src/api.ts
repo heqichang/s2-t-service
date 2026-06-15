@@ -40,7 +40,15 @@ export const ticketApi = {
     category: string;
     priority?: string;
     tagIds?: number[];
+    attachments?: { filename: string; url: string; mimeType: string; size: number }[];
   }) => api.post('/tickets', data),
+  upload: (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api.post('/tickets/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
   detail: (id: number) => api.get(`/tickets/${id}`),
   assign: (id: number, agentId: number) => api.post(`/tickets/${id}/assign`, { agentId }),
   updateStatus: (id: number, status: string) => api.put(`/tickets/${id}/status`, { status }),

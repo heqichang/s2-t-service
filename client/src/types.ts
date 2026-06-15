@@ -118,6 +118,14 @@ export interface TicketRating {
   createdAt: string;
 }
 
+export interface UploadFile {
+  uid: string;
+  name: string;
+  status?: string;
+  size?: number;
+  type?: string;
+}
+
 export const STATUS_LABELS: Record<TicketStatus, string> = {
   PENDING: '待处理',
   PROCESSING: '处理中',

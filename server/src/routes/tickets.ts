@@ -1,5 +1,8 @@
 import { Router } from 'express';
 import { z } from 'zod';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
 import { prisma } from '../lib/prisma';
 import { authMiddleware, requireRole } from '../lib/auth';
 import { createNotification, createNotificationsForAgents } from '../lib/notification';
@@ -9,12 +12,51 @@ const router = Router();
 
 router.use(authMiddleware);
 
+const uploadDir = path.join(__dirname, '..', '..', 'uploads');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+const storage = multer.diskStorage({
+  destination: (_req, _file, cb) => {
+    cb(null, uploadDir);
+  },
+  filename: (_req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    cb(null, uniqueSuffix + '-' + file.originalname);
+  },
+});
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 10 * 1024 * 1024 },
+});
+
+router.post('/upload', upload.single('file'), async (req, res) => {
+  if (!req.user) return res.status(401).json({ error: '未认证' });
+  if (!req.file) return res.status(400).json({ error: '请选择文件' });
+
+  const fileUrl = `/uploads/${req.file.filename}`;
+  res.json({
+    filename: req.file.originalname,
+    url: fileUrl,
+    mimeType: req.file.mimetype,
+    size: req.file.size,
+  });
+});
+
 const createTicketSchema = z.object({
   title: z.string().min(1),
   description: z.string().min(1),
   category: z.enum(['TECHNICAL', 'PRE_SALES', 'COMPLAINT']),
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).optional(),
-  tagIds: z.array(z.number()).optional(),
+  tagIds: z.array(z.coerce.number()).optional(),
+  attachments: z.array(z.object({
+    filename: z.string(),
+    url: z.string(),
+    mimeType: z.string(),
+    size: z.coerce.number(),
+  })).optional(),
 });
 
 router.post('/', async (req, res) => {
@@ -44,11 +86,15 @@ router.post('/', async (req, res) => {
         customerId: req.user.userId,
         agentId: assignedAgentId,
         tags: data.tagIds ? { create: data.tagIds.map((tagId) => ({ tagId })) } : undefined,
+        attachments: data.attachments && data.attachments.length > 0
+          ? { create: data.attachments }
+          : undefined,
       },
       include: {
         customer: { select: { id: true, name: true, email: true } },
         agent: { include: { user: { select: { id: true, name: true, email: true } } } },
         tags: { include: { tag: true } },
+        attachments: true,
       },
     });
 
@@ -346,8 +392,10 @@ router.post('/:id/messages', async (req, res) => {
           });
           io?.to(`user:${agent.userId}`).emit('notification', { type: 'CUSTOMER_REPLY', ticketId });
         }
+        if (ticket.status === 'WAITING_CUSTOMER') {
+          await prisma.ticket.update({ where: { id: ticketId }, data: { status: 'PROCESSING' } });
+        }
       }
-      await prisma.ticket.update({ where: { id: ticketId }, data: { status: 'PROCESSING' } });
     } else {
       await createNotification({
         userId: ticket.customerId,
@@ -414,7 +462,7 @@ router.post('/:id/transfer', requireRole('AGENT', 'ADMIN'), async (req, res) => 
   }
 });
 
-const mergeSchema = z.object({ targetTicketId: z.number() });
+const mergeSchema = z.object({ targetTicketId: z.coerce.number() });
 
 router.post('/:id/merge', requireRole('AGENT', 'ADMIN'), async (req, res) => {
   try {

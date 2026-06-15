@@ -1,6 +1,8 @@
 import express from 'express';
 import http from 'http';
 import cors from 'cors';
+import path from 'path';
+import fs from 'fs';
 import { Server } from 'socket.io';
 import authRoutes from './routes/auth';
 import ticketRoutes from './routes/tickets';
@@ -11,8 +13,14 @@ import jwt from 'jsonwebtoken';
 export const app = express();
 const server = http.createServer(app);
 
+const uploadDir = path.join(__dirname, '..', 'uploads');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
+app.use('/uploads', express.static(uploadDir));
 
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok' });
