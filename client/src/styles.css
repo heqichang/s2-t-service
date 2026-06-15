@@ -1,0 +1,66 @@
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB',
+    'Microsoft YaHei', sans-serif;
+  background: #f0f2f5;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.ticket-messages {
+  max-height: 500px;
+  overflow-y: auto;
+  padding: 16px;
+  background: #fafafa;
+  border-radius: 8px;
+}
+
+.message-item {
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.message-item.right {
+  align-items: flex-end;
+}
+
+.message-bubble {
+  max-width: 70%;
+  padding: 10px 14px;
+  border-radius: 12px;
+  word-break: break-word;
+}
+
+.message-item.left .message-bubble {
+  background: #fff;
+  border: 1px solid #e8e8e8;
+  border-top-left-radius: 4px;
+}
+
+.message-item.right .message-bubble {
+  background: #1677ff;
+  color: #fff;
+  border-top-right-radius: 4px;
+}
+
+.message-meta {
+  font-size: 12px;
+  color: #999;
+  margin-top: 4px;
+}
+
+.internal-note {
+  background: #fffbe6 !important;
+  border: 1px dashed #faad14 !important;
+  color: #d46b08 !important;
+}
+
+.system-message {
+  text-align: center;
+  color: #999;
+  font-size: 12px;
+  padding: 8px;
+}

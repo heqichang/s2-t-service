@@ -1,0 +1,136 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Team {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  agents      Agent[]
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  name      String
+  phone     String?
+  avatar    String?
+  role      String   @default("CUSTOMER")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  agent            Agent?
+  tickets          Ticket[]         @relation("CustomerTickets")
+  messages         Message[]        @relation("UserMessages")
+  notifications    Notification[]
+  ratings          TicketRating[]
+}
+
+model Agent {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @unique
+  user      User     @relation(fields: [userId], references: [id])
+  teamId    Int?
+  team      Team?    @relation(fields: [teamId], references: [id])
+  status    String   @default("OFFLINE")
+  createdAt DateTime @default(now())
+
+  assignedTickets Ticket[]  @relation("AssignedTickets")
+  messages        Message[] @relation("AgentMessages")
+}
+
+model Ticket {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  category    String
+  priority    String   @default("MEDIUM")
+  status      String   @default("PENDING")
+  customerId  Int
+  customer    User     @relation("CustomerTickets", fields: [customerId], references: [id])
+  agentId     Int?
+  agent       Agent?   @relation("AssignedTickets", fields: [agentId], references: [id])
+  mergedToId  Int?
+  mergedTo    Ticket?  @relation("MergedTickets", fields: [mergedToId], references: [id])
+  mergedFrom  Ticket[] @relation("MergedTickets")
+  rating      TicketRating?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  resolvedAt  DateTime?
+  closedAt    DateTime?
+
+  messages    Message[]
+  attachments Attachment[]
+  tags        TicketTag[]
+}
+
+model Message {
+  id         Int      @id @default(autoincrement())
+  ticketId   Int
+  ticket     Ticket   @relation(fields: [ticketId], references: [id])
+  content    String
+  type       String   @default("TEXT")
+  userId     Int?
+  user       User?    @relation("UserMessages", fields: [userId], references: [id])
+  agentId    Int?
+  agent      Agent?   @relation("AgentMessages", fields: [agentId], references: [id])
+  isInternal Boolean  @default(false)
+  createdAt  DateTime @default(now())
+}
+
+model Attachment {
+  id        Int      @id @default(autoincrement())
+  ticketId  Int
+  ticket    Ticket   @relation(fields: [ticketId], references: [id])
+  filename  String
+  url       String
+  mimeType  String
+  size      Int
+  createdAt DateTime @default(now())
+}
+
+model Tag {
+  id      Int         @id @default(autoincrement())
+  name    String      @unique
+  color   String?
+  tickets TicketTag[]
+}
+
+model TicketTag {
+  ticketId Int
+  ticket   Ticket @relation(fields: [ticketId], references: [id])
+  tagId    Int
+  tag      Tag    @relation(fields: [tagId], references: [id])
+
+  @@id([ticketId, tagId])
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  type      String
+  title     String
+  content   String
+  ticketId  Int?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model TicketRating {
+  id        Int      @id @default(autoincrement())
+  ticketId  Int      @unique
+  ticket    Ticket   @relation(fields: [ticketId], references: [id])
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
+}
