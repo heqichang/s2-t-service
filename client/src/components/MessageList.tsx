@@ -36,7 +36,7 @@ const MessageList: React.FC<Props> = ({ messages }) => {
           <div key={msg.id} className={`message-item ${isMe ? 'right' : 'left'}`}>
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, flexDirection: isMe ? 'row-reverse' : 'row' }}>
               <Avatar icon={<UserOutlined />} src={avatar} size={32} />
-              <div style={{ maxWidth: '70%' }}>
+              <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: isMe ? 'flex-end' : 'flex-start' }}>
                 <div
                   style={{
                     fontSize: 12,

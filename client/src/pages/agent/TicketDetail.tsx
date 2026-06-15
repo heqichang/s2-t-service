@@ -110,8 +110,13 @@ const AgentTicketDetail: React.FC = () => {
 
   const handleStatusChange = async (status: string) => {
     try {
-      await ticketApi.updateStatus(Number(id), status);
-      message.success('状态更新成功');
+      if (status === 'PROCESSING' && ticket && !ticket.agentId && user?.agent?.id) {
+        await ticketApi.assign(Number(id), user.agent.id);
+        message.success('已受理工单并开始处理');
+      } else {
+        await ticketApi.updateStatus(Number(id), status);
+        message.success('状态更新成功');
+      }
       fetchTicket();
     } catch (e: any) {
       message.error(e.error || '更新失败');

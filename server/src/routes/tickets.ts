@@ -12,7 +12,7 @@ const router = Router();
 
 router.use(authMiddleware);
 
-const uploadDir = path.join(__dirname, '..', '..', 'uploads');
+const uploadDir = path.resolve(__dirname, '..', '..', 'uploads');
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
@@ -298,7 +298,7 @@ router.put('/:id/status', requireRole('AGENT', 'ADMIN', 'CUSTOMER'), async (req,
       data: updateData,
       include: {
         customer: { select: { id: true, name: true } },
-        agent: { include: { user: { select: { id: true, name: true, userId: true } } } },
+        agent: { include: { user: { select: { id: true, name: true } } } },
       },
     });
 

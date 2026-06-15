@@ -13,7 +13,7 @@ import jwt from 'jsonwebtoken';
 export const app = express();
 const server = http.createServer(app);
 
-const uploadDir = path.join(__dirname, '..', 'uploads');
+const uploadDir = path.resolve(__dirname, '..', 'uploads');
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
